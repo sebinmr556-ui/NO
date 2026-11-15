@@ -6,6 +6,9 @@ import {
   verifyRequestFirebaseUser,
 } from "../../../../../lib/authAndLiveKit";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function OPTIONS() {
   return handleCorsOptions();
 }

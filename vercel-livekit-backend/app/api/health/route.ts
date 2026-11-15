@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { CORS_HEADERS, DEFAULT_FIREBASE_PROJECT_ID, handleCorsOptions } from "../../../lib/authAndLiveKit";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
 export async function OPTIONS() {
   return handleCorsOptions();
 }

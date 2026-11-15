@@ -720,6 +720,14 @@ object VercelLiveKitTokenClient {
         }
 
         val serverMsg = extractServerErrorMessage(lastErrorBody)
+        if (serverMsg.contains("Failed to load external module firebase-admin", ignoreCase = true)) {
+            return VercelLiveKitTokenResult.Failure(
+                httpCode = lastHttpCode,
+                errorTitle = "Vercel firebase-admin External Module Error",
+                errorMessage = "Ensure 'firebase-admin' is in dependencies in package.json and serverExternalPackages: ['firebase-admin'] is configured in next.config.mjs / next.config.js on Vercel ($baseUrl).",
+                isServerConfigError = true
+            )
+        }
         return VercelLiveKitTokenResult.Failure(
             httpCode = lastHttpCode,
             errorTitle = if (lastHttpCode == 401) "Authentication Error" else "LiveKit Token Service Error",

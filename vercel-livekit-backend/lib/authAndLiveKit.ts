@@ -28,16 +28,22 @@ function getFirebaseAdminAuth(): admin.auth.Auth | null {
     return null;
   }
 
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId,
-        clientEmail,
-        privateKey,
-      }),
-    });
+  try {
+    const adminNs = (admin as unknown as { default?: typeof admin }).default || admin;
+    if (!adminNs.apps || !adminNs.apps.length) {
+      adminNs.initializeApp({
+        credential: adminNs.credential.cert({
+          projectId,
+          clientEmail,
+          privateKey,
+        }),
+      });
+    }
+    return adminNs.auth();
+  } catch (err) {
+    console.warn("firebase-admin init fallback to Google x509 public certs:", err);
+    return null;
   }
-  return admin.auth();
 }
 
 let cachedGoogleCerts: { certs: Record<string, string>; expiresAt: number } | null = null;
