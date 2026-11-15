@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isValidMediaPayload() {
+      return request.resource != null &&
+             request.resource.size > 0 &&
+             request.resource.size <= 100 * 1024 * 1024 &&
+             (request.resource.contentType.matches('image/.*') ||
+              request.resource.contentType.matches('video/.*') ||
+              request.resource.contentType == 'application/octet-stream');
+    }
+
+    // Permanent Post Media: users/{uid}/posts/{postId}/original & thumbnail.jpg
+    match /users/{uid}/posts/{postId}/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(uid) && isValidMediaPayload();
+      allow delete: if isOwner(uid);
+    }
+
+    // Permanent Story Media: users/{uid}/stories/{storyId}/original & thumbnail.jpg
+    match /users/{uid}/stories/{storyId}/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(uid) && isValidMediaPayload();
+      allow delete: if isOwner(uid);
+    }
+
+    // Permanent User Avatar Media: users/{uid}/avatar/{fileName}
+    match /users/{uid}/avatar/{fileName} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(uid) && isValidMediaPayload();
+      allow delete: if isOwner(uid);
+    }
+
+    // Deny all other paths by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

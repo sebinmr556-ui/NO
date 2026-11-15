@@ -1,0 +1,6 @@
+{
+  "name": "Noise Live",
+  "description": "Social media platform with live party rooms, reels, stories, direct messages, and VIP coin vault.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,338 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered Noise Live user profile and account balances.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "appScope": { "type": "string" },
+        "username": { "type": "string" },
+        "usernameLower": { "type": "string" },
+        "displayName": { "type": "string" },
+        "displayNameLower": { "type": "string" },
+        "bio": { "type": "string" },
+        "website": { "type": "string" },
+        "avatarKey": { "type": "string" },
+        "profilePictureUrl": { "type": "string" },
+        "accountPrivacy": { "type": "string", "enum": ["public", "private"] },
+        "coins": { "type": "integer" },
+        "vip": { "type": "boolean" },
+        "verified": { "type": "boolean" },
+        "online": { "type": "boolean" },
+        "lastActiveLabel": { "type": "string" },
+        "postsCount": { "type": "integer" },
+        "followersCount": { "type": "integer" },
+        "followingCount": { "type": "integer" },
+        "followedUserIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "appScope", "username", "displayName", "bio", "website",
+        "avatarKey", "coins", "vip", "verified", "online",
+        "postsCount", "followersCount", "followingCount", "createdAt", "updatedAt"
+      ]
+    },
+    "UserPrivate": {
+      "title": "UserPrivate",
+      "description": "Private user account metadata (email) restricted strictly to the account owner.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["userId", "email"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Photo or video clip shared on Noise Live.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "appScope": { "type": "string" },
+        "username": { "type": "string" },
+        "displayName": { "type": "string" },
+        "authorAvatarKey": { "type": "string" },
+        "mediaKey": { "type": "string" },
+        "mediaType": { "type": "string", "enum": ["photo", "video"] },
+        "caption": { "type": "string" },
+        "location": { "type": "string" },
+        "tag": { "type": "string" },
+        "vibeEmoji": { "type": "string" },
+        "likesCount": { "type": "integer" },
+        "commentsCount": { "type": "integer" },
+        "likedByUids": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "appScope", "username", "displayName", "authorAvatarKey",
+        "mediaKey", "mediaType", "caption", "location", "tag", "vibeEmoji",
+        "likesCount", "commentsCount", "likedByUids", "createdAt", "updatedAt"
+      ]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Comment on a post.",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "userId": { "type": "string" },
+        "appScope": { "type": "string" },
+        "username": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId", "userId", "appScope", "username", "text", "createdAt"]
+    },
+    "Story": {
+      "title": "Story",
+      "description": "Instagram-style 24-hour user story (photo or video).",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "appScope": { "type": "string" },
+        "username": { "type": "string" },
+        "mediaKey": { "type": "string" },
+        "mediaType": { "type": "string", "enum": ["photo", "video"] },
+        "durationSec": { "type": "integer" },
+        "viewedByUids": { "type": "array", "items": { "type": "string" } },
+        "caption": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "appScope", "username", "mediaKey", "caption", "createdAt"]
+    },
+    "PartyRoom": {
+      "title": "PartyRoom",
+      "description": "VIP Live Party Room with 12 interactive seats, 5-tier role hierarchy, themes, PK battle, music, and gifts.",
+      "type": "object",
+      "properties": {
+        "hostId": { "type": "string" },
+        "appScope": { "type": "string" },
+        "hostUsername": { "type": "string" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "musicTrack": { "type": "string" },
+        "musicPlaying": { "type": "boolean" },
+        "musicVolume": { "type": "integer" },
+        "gameName": { "type": "string" },
+        "micMode": { "type": "string" },
+        "capacity": { "type": "integer" },
+        "privateRoom": { "type": "boolean" },
+        "password": { "type": "string" },
+        "themeKey": { "type": "string" },
+        "pkActive": { "type": "boolean" },
+        "wipedScreen": { "type": "boolean" },
+        "seat1Name": { "type": "string" },
+        "seat1Avatar": { "type": "string" },
+        "seat1Diamonds": { "type": "integer" },
+        "seat2Name": { "type": "string" },
+        "seat2Avatar": { "type": "string" },
+        "seat2Diamonds": { "type": "integer" },
+        "lockedSeats": { "type": "array", "items": { "type": "integer" } },
+        "occupiedSeatsJson": { "type": "string" },
+        "superAdminIds": { "type": "array", "items": { "type": "string" } },
+        "adminIds": { "type": "array", "items": { "type": "string" } },
+        "moderatorIds": { "type": "array", "items": { "type": "string" } },
+        "mutedUserIds": { "type": "array", "items": { "type": "string" } },
+        "kickedUserIds": { "type": "array", "items": { "type": "string" } },
+        "participantsJson": { "type": "string" },
+        "chatMessagesJson": { "type": "string" },
+        "roomNotice": { "type": "string" },
+        "listenersCount": { "type": "integer" },
+        "giftsTotal": { "type": "integer" },
+        "live": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "hostId", "appScope", "hostUsername", "title", "subtitle",
+        "listenersCount", "giftsTotal", "live", "createdAt", "updatedAt"
+      ]
+    },
+    "NotificationItem": {
+      "title": "NotificationItem",
+      "description": "User activity notification.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "actorUid": { "type": "string" },
+        "actorUsername": { "type": "string" },
+        "actorAvatarKey": { "type": "string" },
+        "type": { "type": "string", "enum": ["like", "comment", "follow", "mention", "reel_like"] },
+        "message": { "type": "string" },
+        "targetThumbKey": { "type": "string" },
+        "timeLabel": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "userId", "actorUid", "actorUsername", "actorAvatarKey", "type",
+        "message", "targetThumbKey", "timeLabel", "read", "createdAt", "updatedAt"
+      ]
+    },
+    "Conversation": {
+      "title": "Conversation",
+      "description": "Noise Direct 1-on-1 message thread with typing, online status, last seen, and pinned messages.",
+      "type": "object",
+      "properties": {
+        "participantIds": { "type": "array", "items": { "type": "string" } },
+        "peerUid": { "type": "string" },
+        "peerUsername": { "type": "string" },
+        "peerDisplayName": { "type": "string" },
+        "peerAvatarKey": { "type": "string" },
+        "peerVerified": { "type": "boolean" },
+        "peerOnline": { "type": "boolean" },
+        "peerTyping": { "type": "boolean" },
+        "peerLastSeen": { "type": "string" },
+        "pinnedMessageIds": { "type": "array", "items": { "type": "string" } },
+        "lastMessage": { "type": "string" },
+        "lastTimeLabel": { "type": "string" },
+        "unreadCount": { "type": "integer" },
+        "tabCategory": { "type": "string", "enum": ["Primary", "General"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "participantIds", "peerUid", "peerUsername", "peerDisplayName",
+        "peerAvatarKey", "peerVerified", "peerOnline", "peerTyping",
+        "lastMessage", "lastTimeLabel", "unreadCount", "tabCategory",
+        "createdAt", "updatedAt"
+      ]
+    },
+    "DirectMessage": {
+      "title": "DirectMessage",
+      "description": "Message inside a Noise Direct conversation supporting text, media, voice, reactions, replies, pinning, and 3-state delivery ticks.",
+      "type": "object",
+      "properties": {
+        "conversationId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "participantIds": { "type": "array", "items": { "type": "string" } },
+        "text": { "type": "string" },
+        "messageContent": { "type": "string" },
+        "messageType": { "type": "string", "enum": ["text", "image", "video", "voice"] },
+        "mediaKey": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "mediaType": { "type": "string" },
+        "voiceDurationSec": { "type": "integer" },
+        "voiceWaveform": { "type": "string" },
+        "deliveryStatus": { "type": "string", "enum": ["sent", "delivered", "seen"] },
+        "status": { "type": "string", "enum": ["sent", "delivered", "read"] },
+        "timeLabel": { "type": "string" },
+        "reactionEmoji": { "type": "string" },
+        "replyToMessageId": { "type": "string" },
+        "replyToSenderName": { "type": "string" },
+        "replyToText": { "type": "string" },
+        "pinned": { "type": "boolean" },
+        "savedLocally": { "type": "boolean" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "deliveredAt": { "type": "string", "format": "date-time" },
+        "readAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["conversationId", "senderId", "senderName", "participantIds", "text", "read", "createdAt"]
+    },
+    "VoiceRecordingDoc": {
+      "title": "VoiceRecordingDoc",
+      "description": "Playable RIFF/WAVE or M4A audio payload synced via Firestore for cross-device voice messages.",
+      "type": "object",
+      "properties": {
+        "conversationId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "participantIds": { "type": "array", "items": { "type": "string" } },
+        "audioBase64": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "durationSec": { "type": "integer" },
+        "waveform": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["conversationId", "senderId", "participantIds", "audioBase64", "mimeType", "durationSec", "createdAt"]
+    },
+    "CoinTransaction": {
+      "title": "CoinTransaction",
+      "description": "VIP Unlimited Vault coin claim or gift transaction record.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "tierName": { "type": "string" },
+        "amount": { "type": "integer" },
+        "balanceAfter": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "tierName", "amount", "balanceAfter", "createdAt"]
+    },
+    "VipBadgePurchase": {
+      "title": "VipBadgePurchase",
+      "description": "Verified purchase record for VIP 1 to VIP 10 Luxury Gemstone Badges.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "username": { "type": "string" },
+        "vipLevel": { "type": "integer" },
+        "badgeName": { "type": "string" },
+        "gemstoneName": { "type": "string" },
+        "priceCoins": { "type": "integer" },
+        "balanceAfter": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "vipLevel", "badgeName", "priceCoins", "balanceAfter"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profiles and registered accounts."
+    },
+    "/user_private/{userId}": {
+      "schema": { "$ref": "#/entities/UserPrivate" },
+      "description": "Private user email metadata visible only to the account owner."
+    },
+    "/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "Feed posts and video clips."
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Post comments."
+    },
+    "/stories/{storyId}": {
+      "schema": { "$ref": "#/entities/Story" },
+      "description": "User stories."
+    },
+    "/party_rooms/{roomId}": {
+      "schema": { "$ref": "#/entities/PartyRoom" },
+      "description": "VIP Party Rooms."
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/NotificationItem" },
+      "description": "User notifications."
+    },
+    "/conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/Conversation" },
+      "description": "Direct message conversations."
+    },
+    "/conversations/{conversationId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/DirectMessage" },
+      "description": "Direct messages."
+    },
+    "/voice_recordings/{recordingId}": {
+      "schema": { "$ref": "#/entities/VoiceRecordingDoc" },
+      "description": "Cross-device voice recording payloads."
+    },
+    "/coin_transactions/{txId}": {
+      "schema": { "$ref": "#/entities/CoinTransaction" },
+      "description": "VIP coin transactions."
+    },
+    "/vip_badge_purchases/{purchaseId}": {
+      "schema": { "$ref": "#/entities/VipBadgePurchase" },
+      "description": "Verified VIP 1 to VIP 10 Luxury Gemstone Badge purchases."
+    }
+  }
+}
