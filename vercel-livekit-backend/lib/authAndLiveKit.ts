@@ -1,6 +1,7 @@
+import "server-only";
 import { NextRequest, NextResponse } from "next/server";
 import { AccessToken, RoomServiceClient, VideoGrant } from "livekit-server-sdk";
-import * as admin from "firebase-admin";
+import type { Auth } from "firebase-admin/auth";
 import crypto from "crypto";
 
 export const DEFAULT_FIREBASE_PROJECT_ID = "project-7eddf9da-6480-4ac9-a2d";
@@ -8,7 +9,7 @@ export const DEFAULT_FIREBASE_PROJECT_ID = "project-7eddf9da-6480-4ac9-a2d";
 export const CORS_HEADERS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Firebase-Uid",
 };
 
 export function handleCorsOptions(): NextResponse {
@@ -19,7 +20,11 @@ export function getFirebaseProjectId(): string {
   return (process.env.FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_PROJECT_ID).trim();
 }
 
-function getFirebaseAdminAuth(): admin.auth.Auth | null {
+/**
+ * Dynamically imports `firebase-admin/app` and `firebase-admin/auth` on the server only.
+ * Avoids top-level CommonJS `require('jose')` (`ERR_REQUIRE_ESM`) during module initialization.
+ */
+async function getFirebaseAdminAuth(): Promise<Auth | null> {
   const projectId = getFirebaseProjectId();
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n")?.trim();
@@ -29,19 +34,22 @@ function getFirebaseAdminAuth(): admin.auth.Auth | null {
   }
 
   try {
-    const adminNs = (admin as unknown as { default?: typeof admin }).default || admin;
-    if (!adminNs.apps || !adminNs.apps.length) {
-      adminNs.initializeApp({
-        credential: adminNs.credential.cert({
-          projectId,
-          clientEmail,
-          privateKey,
-        }),
-      });
-    }
-    return adminNs.auth();
+    const appModule = await import("firebase-admin/app");
+    const authModule = await import("firebase-admin/auth");
+    const existingApps = appModule.getApps();
+    const app =
+      existingApps.length > 0
+        ? existingApps[0]
+        : appModule.initializeApp({
+            credential: appModule.cert({
+              projectId,
+              clientEmail,
+              privateKey,
+            }),
+          });
+    return authModule.getAuth(app);
   } catch (err) {
-    console.warn("firebase-admin init fallback to Google x509 public certs:", err);
+    console.warn("firebase-admin dynamic import fallback to Google x509 public certs:", err);
     return null;
   }
 }
@@ -49,6 +57,13 @@ function getFirebaseAdminAuth(): admin.auth.Auth | null {
 let cachedGoogleCerts: { certs: Record<string, string>; expiresAt: number } | null = null;
 
 async function fetchGooglePublicCerts(): Promise<Record<string, string>> {
+  if (process.env.FIREBASE_LOCAL_TEST_CERTS_JSON) {
+    try {
+      return JSON.parse(process.env.FIREBASE_LOCAL_TEST_CERTS_JSON) as Record<string, string>;
+    } catch {
+      // ignore invalid test certs JSON
+    }
+  }
   const now = Date.now();
   if (cachedGoogleCerts && cachedGoogleCerts.expiresAt > now) {
     return cachedGoogleCerts.certs;
@@ -74,7 +89,7 @@ function decodeBase64UrlJson<T>(segment: string): T {
   return JSON.parse(Buffer.from(padded, "base64").toString("utf8")) as T;
 }
 
-async function verifyFirebaseJwtWithGooglePublicCerts(
+export async function verifyFirebaseJwtWithGooglePublicCerts(
   idToken: string,
   expectedProjectId: string
 ): Promise<{ uid: string; name?: string; email?: string }> {
@@ -104,7 +119,9 @@ async function verifyFirebaseJwtWithGooglePublicCerts(
     throw new Error("Firebase ID token has expired");
   }
   if (payload.aud !== expectedProjectId) {
-    throw new Error(`Invalid Firebase token audience: expected ${expectedProjectId}, got ${payload.aud}`);
+    throw new Error(
+      `Invalid Firebase token audience: expected ${expectedProjectId}, got ${payload.aud}`
+    );
   }
   if (payload.iss !== `https://securetoken.google.com/${expectedProjectId}`) {
     throw new Error(`Invalid Firebase token issuer: ${payload.iss}`);
@@ -150,14 +167,30 @@ export async function verifyRequestFirebaseUser(
     throw new Error("Empty Firebase ID token");
   }
 
-  const adminAuth = getFirebaseAdminAuth();
+  const adminAuth = await getFirebaseAdminAuth();
   if (adminAuth) {
-    const decoded = await adminAuth.verifyIdToken(idToken);
-    return {
-      uid: decoded.uid,
-      name: (decoded.name as string | undefined) || decoded.email,
-      email: decoded.email,
-    };
+    try {
+      const decoded = await adminAuth.verifyIdToken(idToken);
+      return {
+        uid: decoded.uid,
+        name: (decoded.name as string | undefined) || decoded.email,
+        email: decoded.email,
+      };
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code || "";
+      const message = err instanceof Error ? err.message : String(err);
+      // Only fall back to Google x509 cert verification if an ESM/module loader error occurred;
+      // rethrow real Firebase Auth token validation errors (expired, revoked, invalid argument).
+      const isModuleLoaderError =
+        code === "ERR_REQUIRE_ESM" ||
+        code === "MODULE_NOT_FOUND" ||
+        message.includes("ERR_REQUIRE_ESM") ||
+        message.includes("Failed to load external module");
+      if (!isModuleLoaderError) {
+        throw err;
+      }
+      console.warn("Falling back to Google x509 verification due to module loader error:", message);
+    }
   }
 
   return verifyFirebaseJwtWithGooglePublicCerts(idToken, getFirebaseProjectId());
@@ -195,6 +228,7 @@ export async function createSignedLiveKitToken(params: {
   canPublishData?: boolean;
   metadata?: string;
 }): Promise<{
+  wsUrl: string;
   token: string;
   serverUrl: string;
   url: string;
@@ -224,6 +258,7 @@ export async function createSignedLiveKitToken(params: {
 
   const jwt = await at.toJwt();
   return {
+    wsUrl: livekitUrl,
     token: jwt,
     serverUrl: livekitUrl,
     url: livekitUrl,
